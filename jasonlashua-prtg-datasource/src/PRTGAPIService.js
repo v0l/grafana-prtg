@@ -511,7 +511,7 @@ function PRTGAPIService(alertSrv, backendSrv) {
           history.push({
             sensor: sensor,
             channel: channel,
-            datetime: new Date(parseInt(date.groups.y) - 1900, parseInt(date.groups.m) - 1, parseInt(date.groups.d), parseInt(date.groups.hh), parseInt(date.groups.mm), parseInt(date.groups.ss)),
+            datetime: new Date(parseInt(date.groups.y), parseInt(date.groups.m) - 1, parseInt(date.groups.d), parseInt(date.groups.hh), parseInt(date.groups.mm), parseInt(date.groups.ss)),
             value: results[iter][channel]
           });
         }
