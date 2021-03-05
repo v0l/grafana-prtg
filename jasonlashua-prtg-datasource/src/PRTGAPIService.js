@@ -22,13 +22,13 @@ function PRTGAPIService(alertSrv, backendSrv) {
       this.tzAutoAdjust = tzAutoAdjust;
       this.tzAutoAdjustValue = 0;
       if (tzAutoAdjust) {
-        this.performPRTGAPIRequest("status.json").then(response => { 
-          const jsClock =  response.jsClock; 
+        this.performPRTGAPIRequest("status.json").then(response => {
+          const jsClock = response.jsClock;
           const localTs = Date.now();
-          this.tzAutoAdjustValue = Math.round((localTs - jsClock),0) //i'll finish implementing this some day
+          this.tzAutoAdjustValue = Math.round((localTs - jsClock), 0) //i'll finish implementing this some day
         })
       }
-      
+
     }
 
     /**
@@ -41,12 +41,12 @@ function PRTGAPIService(alertSrv, backendSrv) {
      * @return boolean
      */
     inCache(url) {
-      for(var item in this.cache) {
+      for (var item in this.cache) {
         if (Date.now() - this.cache[item].timestamp > (this.cacheTimeoutMinutes * 60000)) {
-          delete(this.cache[item])
+          delete (this.cache[item])
         }
       }
-      
+
       if (this.cache[this.hashValue(url)]) {
         return true
       }
@@ -71,7 +71,7 @@ function PRTGAPIService(alertSrv, backendSrv) {
      * @return promise
      */
     setCache(url, data) {
-      this.cache[this.hashValue(url)] = {"timestamp": Date.now(), "data": data};
+      this.cache[this.hashValue(url)] = { "timestamp": Date.now(), "data": data };
       return this.getCache(url);
     }
 
@@ -151,11 +151,11 @@ function PRTGAPIService(alertSrv, backendSrv) {
                 return response.data.histdata;
               } else {
                 return Promise.reject({
-                    message:
-                      "Not sure how to handle this request.\n\nRequest:\n" +
-                      params +
-                      "\n"
-                  });
+                  message:
+                    "Not sure how to handle this request.\n\nRequest:\n" +
+                    params +
+                    "\n"
+                });
               }
             },
             error => {
@@ -174,7 +174,7 @@ function PRTGAPIService(alertSrv, backendSrv) {
      * @return Promise
      */
     getVersion() {
-      return this.performPRTGAPIRequest("status.json").then(function(response) {
+      return this.performPRTGAPIRequest("status.json").then(function (response) {
         if (!response) {
           return "ERROR. No response.";
         } else {
@@ -219,7 +219,7 @@ function PRTGAPIService(alertSrv, backendSrv) {
       if (deviceFilter) {
         params += deviceFilter;
       }
-        
+
       return this.performPRTGAPIRequest("table.json", params);
     }
 
@@ -380,13 +380,13 @@ function PRTGAPIService(alertSrv, backendSrv) {
          * channel names, which are then used to retrieve the data. 
          */
         const promises = _.map(sensors, sensor => {
-          const params = "content=values&output=json&columns=value_&noraw=1&count=1&usecaption=true&id="+ sensor.objid 
+          const params = "content=values&output=json&columns=value_&noraw=1&count=1&usecaption=true&id=" + sensor.objid
           //const params = "content=channels&columns=sensor,name&id=" + sensor.objid;
           return this.performPRTGAPIRequest(
             "table.json",
             params
           ).then(channels => {
-           let arrTmp = []
+            let arrTmp = []
             for (var key in Object.keys(channels[0])) {
               let channel = {}
               channel.sensor = sensor.objid;
@@ -467,7 +467,7 @@ function PRTGAPIService(alertSrv, backendSrv) {
         utils.pad(dt.getSeconds())
       ];
       return str.join("-");
-    }    
+    }
 
     /**
      * Retrieve history data from a single sensor.
@@ -504,15 +504,15 @@ function PRTGAPIService(alertSrv, backendSrv) {
              * 9=Paused by Schedule, 10=Unusual, 11=Not Licensed, 12=Paused Until, 13=Down Acknowledged, 14=Down Partial
              */
       const history = [];
-      
+
       return this.performPRTGAPIRequest(method, params).then(results => {
-        for (let iter = 0; iter < results.length; iter++)
-        {
-            history.push({
+        for (let iter = 0; iter < results.length; iter++) {
+          let date = results[iter]["datetime"].match(/(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)\s(?<hh>\d+):(?<mm>\d+):(?<ss>\d+)\s?/)
+          history.push({
             sensor: sensor,
             channel: channel,
-            datetime: Date.parse(results[iter]["datetime"].match(/(\d+\/\d+\/\d+\s\d+:\d+:\d+)\s?/)[1]), //Let's pray there are no Chinese timestamps
-            value: results[iter][channel] 
+            datetime: new Date(parseInt(date.groups.y) - 1900, parseInt(date.groups.m) - 1, parseInt(date.groups.d), parseInt(date.groups.hh), parseInt(date.groups.mm), parseInt(date.groups.ss)),
+            value: results[iter][channel]
           });
         }
         return history;
@@ -531,12 +531,12 @@ function PRTGAPIService(alertSrv, backendSrv) {
       const params =
         "&content=messages&columns=objid,datetime,parent,type,name,status,message&id=" +
         sensorId;
-      return this.performPRTGAPIRequest(method, params).then(function(
+      return this.performPRTGAPIRequest(method, params).then(function (
         messages
       ) {
         const events = [];
         let time = 0;
-        _.each(messages, function(message) {
+        _.each(messages, function (message) {
           time = Math.round((message.datetime_raw - 25569) * 86400, 0);
           if (time > from && time < to) {
             events.push({
